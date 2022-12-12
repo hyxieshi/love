@@ -41,7 +41,7 @@
         <input type="number" id="ratio" placeholder="默认60" />
       </div>
       <p id="performance">0</p>
-      <button id="download" style="display: none">下载</button>
+      <button id="download" style="visibility='hidden">下载</button>
     </div>
   </body>
   <script>
@@ -77,7 +77,7 @@
         i++;
       }
       console.timeEnd("压缩");
-      document.getElementById("download").style.display = "block";
+      document.getElementById("download").style.visibility="visible";
     });
     // 下载
     document.getElementById("download").addEventListener("click", (e) => {
