@@ -148,8 +148,8 @@
           // console.log(e.target.result);
           img.src = e.target.result;
           img.addEventListener("load", (e) => {
-            let width = e.path[0].width;
-            let heith = e.path[0].height;
+            let width = img.width;
+            let heith = img.height;
             // console.log(width, heith);
             canva.width = width;
             canva.height = heith;
