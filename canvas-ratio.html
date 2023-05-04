@@ -2,8 +2,8 @@
  * @Author: SunBOY
  * @Date: 2022-11-24 15:18:13
  * @LastEditors: SunBOY
- * @LastEditTime: 2022-12-12 18:51:26
- * @FilePath: \1.html
+ * @LastEditTime: 2023-05-05 00:01:24
+ * @FilePath: d:\xike\Desktop\在线压缩图片.html
  * @Description: 
  * Copyright 2022 OBKoro1, All Rights Reserved. 
  * 2022-11-24 15:18:13
@@ -17,161 +17,182 @@
     <title>canva 在线压缩</title>
     <!-- <script src="https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script> -->
     <script src="https://cdn.bootcdn.net/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   </head>
-
   <body>
     <div id="app">
-      <!-- 
-      上传
-      压缩率 
-      是否压缩图片尺寸
-      单图 直接下载图片
-      多图 下载压缩包
-      压缩进度
-     -->
       <h1>在线压缩</h1>
       <p>
         这是一款在线批量压缩图片神器，它不需要后端服务器或者API的支持，仅通过你的浏览器来压缩图片大小，这意味着它压缩图片极快并且不会导致隐私或敏感图片泄漏给第三方。
       </p>
-      <div>
-        <input type="file" id="input" multiple accept="image/gif,image/jpeg,image/jpg,image/png"/>
-        <button id="yasuo">压缩</button>
-        <p>请输入0-100 的压缩比例 数值越小压缩比越高</p>
+      <div class="mag">
+        <input
+          type="file"
+          id="input"
+          multiple
+          accept="image/gif,image/jpeg,image/jpg,image/png"
+          @change="chooseImg"
+        />
+        <button @click="jpegImager" :disabled="pct>0" v-show="filelist.length>0">压缩</button>
+        <p>请输入0-100的压缩比例 数值越小压缩比越高</p>
         <p>经过测试20 是兼顾大小及画质的 低于20 画质下降很大</p>
-        <input type="number" id="ratio" placeholder="默认60" />
+        <input
+          type="range"
+          :value="ratio"
+          min="1"
+          max="100"
+          @input="a"
+        />{{ratio}}
+        <div class="down">
+          <div id="performance">
+            <div id="performances" :style="{width:`${pct}%`}">
+              {{pct !== 0?pct<10?pct:pct+'%':''}}
+            </div>
+          </div>
+          <!-- <p id="performance" v-show="pct">{{`${pct}%`}}</p> -->
+          <button
+            class="downloadPic"
+            v-show="pct === 100.00"
+            @click="downloadPic"
+          >
+            下载
+          </button>
+        </div>
       </div>
-      <p id="performance">0</p>
-      <button id="download" style="visibility:hidden">下载</button>
     </div>
   </body>
   <script>
-    // 上传文件列表
-    let filelist = [];
-    // 压缩后的文件列表
-    let filedow = [];
-    // 选择图片
-    document.getElementById("input").addEventListener("change", (e) => {
-      console.log(e.target.files);
-      if (e.target.files === null || e.target.files.lenth === 0) {
-        return;
-      }
-      filelist = e.target.files;
-    });
-    // 压缩后 生成 base64
-    document.getElementById("yasuo").addEventListener("click", async (e) => {
-      if (filelist.length === 0) {
-        return 0;
-      }
+    const { createApp } = Vue;
+    createApp({
+      data() {
+        return {
+          //文件列表
+          filelist: [],
+          // 压缩后的列表
+          filedow: [],
+          pct: 0,
+          ratio: 60,
+        };
+      },
+      methods: {
+        a(e) {
+          this.ratio = e.target.value;
+          // console.dir(document.querySelectorAll("input").value);
+        },
+        //选择图片
+        chooseImg(e) {
+          if (e.target.files === null || e.target.files.lenth === 0) {
+            return;
+          }
+          this.pct = 0
+          this.filelist = e.target.files;
+        },
+        // 压缩图片
+        async jpegImager(e) {
+          if (this.filelist === undefined) {
+            console.log("-");
+            return 0;
+          }
+          if (this.ratio === null) {
+            this.ratio = 60;
+          }
 
-      let ratio = document.getElementById("ratio").value;
-      ratio = Math.floor(ratio);
-      if (ratio > 100 || ratio <= 0) {
-        ratio = 60;
-      }
-      ratio = ratio / 100;
-      console.log(ratio);
-      console.time("压缩");
-      let i = 1;
-      for (const item of filelist) {
-        await compress(item, (i / filelist.length) * 100, ratio);
-        i++;
-      }
-      console.timeEnd("压缩");
-      document.getElementById("download").style.visibility="visible";
-    });
-    // 下载
-    document.getElementById("download").addEventListener("click", (e) => {
-      if (document.getElementById("performance").innerText !== "100%") {
-        console.log("未完成", typeof p.innerText);
-        return false;
-      }
-      // 下载压缩包 一起下载
-      if (filedow.length > 1) {
-        // 新建一个压缩包
-        let zip = new JSZip();
-        filedow.forEach((item) => {
-          // 写入文件
-          zip.file(
-            item.name, //文件名
-            item.url.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""), //写入信息 base64
-            { base64: true } //是否为base64
-          );
-        });
-        // 下载
-        zip
-          .generateAsync({
-            type: "blob",
-          })
-          .then((res) => {
-            console.log(res);
-            let a = document.createElement("a");
-            a.download = "xike.zip";
-            a.href = URL.createObjectURL(res);
-            a.click();
-          });
-      } else {
-        for (const item of filedow) {
-          console.log(item);
-          let a = document.createElement("a");
-          a.download = item.name;
-          a.href = item.url;
-          a.click();
-          console.log("正在下载");
-        }
-      }
-      // 下载后清空 文件
-      document.getElementById("input").value = "";
-      filedow = [];
-      filelist = [];
-      // console.log(zip);
+          if (this.ratio > 100 || this.ratio <= 0) {
+            this.ratio = 60;
+          }
+          // this.ratio = this.ratio / 100;
 
-      //循环下载
-      // for (const item of filedow) {
-      //   console.log(item);
-      //   let a = document.createElement("a");
-      //   a.download = item.name;
-      //   a.href = item.url;
-      //   a.click();
-      //   console.log("正在下载");
-      // }
-    });
-    // 压缩处理方法
-    function compress(item, i, ratio = 0.6) {
-      return new Promise((res, rej) => {
-        const img = new Image();
-        const canva = document.createElement("canvas");
-        const ctx = canva.getContext("2d");
-        const render = new FileReader();
-        let url = null;
-        render.readAsDataURL(item);
-        render.addEventListener("load", (e) => {
-          // console.log(e.target.result);
-          img.src = e.target.result;
-          img.addEventListener("load", (e) => {
-            let width = img.width;
-            let heith = img.height;
-            // console.log(width, heith);
-            canva.width = width;
-            canva.height = heith;
-            ctx.drawImage(img, 0, 0);
-            url = canva.toDataURL("image/jpeg", ratio);
-            // console.log(url);
-            filedow.push({
-              name: item.name,
-              url: url,
+          console.time("压缩");
+          let i = 1;
+          console.log(this.ratio / 100);
+          for (const item of this.filelist) {
+            await this.compress(
+              item,
+              (i / this.filelist.length) * 100,
+              this.ratio / 100
+            );
+            i++;
+          }
+          console.log(typeof this.pct);
+          console.timeEnd("压缩");
+        },
+        downloadPic(e) {
+          if (this.pct !== 100) {
+            console.log("未完成");
+            return false;
+          }
+          // 下载压缩包 一起下载
+          if (this.filedow.length > 1) {
+            // 新建一个压缩包
+            let zip = new JSZip();
+            this.filedow.forEach((item) => {
+              // 写入文件
+              zip.file(
+                item.name, //文件名
+                item.url.replace(/^data:image\/(png|jpg|jpeg);base64,/, ""), //写入信息 base64
+                { base64: true } //是否为base64
+              );
             });
-            document.getElementById("performance").innerText =
-              Math.floor(i) + "%";
-            res(url);
+            // 下载
+            zip
+              .generateAsync({
+                type: "blob",
+              })
+              .then((res) => {
+                console.log(res);
+                let a = document.createElement("a");
+                a.download = "xike.zip";
+                a.href = URL.createObjectURL(res);
+                a.click();
+              });
+          } else {
+            for (const item of this.filedow) {
+              console.log(item);
+              let a = document.createElement("a");
+              a.download = item.name;
+              a.href = item.url;
+              a.click();
+              console.log("正在下载");
+            }
+          }
+          // 下载后清空 文件
+          document.getElementById("input").value = "";
+          this.filedow = [];
+          this.filelist = [];
+          // console.log(zip);
+        },
+        compress(item, i, ratio = 0.6) {
+          return new Promise((res, rej) => {
+            const img = new Image();
+            const canva = document.createElement("canvas");
+            const ctx = canva.getContext("2d");
+            const render = new FileReader();
+            let url = null;
+            render.readAsDataURL(item);
+            render.addEventListener("load", (e) => {
+              // console.log(e.target.result);
+              img.src = e.target.result;
+              img.addEventListener("load", (e) => {
+                let width = img.width;
+                let heith = img.height;
+                // console.log(width, heith);
+                canva.width = width;
+                canva.height = heith;
+                ctx.drawImage(img, 0, 0);
+                url = canva.toDataURL("image/jpeg", ratio);
+                // console.log(url);
+                this.filedow.push({
+                  name: item.name,
+                  url: url,
+                });
+                this.pct = +i.toFixed(2);
+                res(url);
+              });
+            });
           });
-        });
-      });
-
-      // for await (const item of filelist) {
-      //   // console.log(item);
-
-      // }
-    }
+        },
+      },
+    }).mount("#app");
   </script>
   <style>
     body {
@@ -182,14 +203,59 @@
       margin: 0;
     }
     #app {
-      width: 80%;
-      height: 80%;
+      width: 100vw;
+      height: 100vh;
       padding: 50px;
-      background-color: rgb(43, 159, 253);
+      box-sizing: border-box;
+      background-color: antiquewhite;
       display: flex;
       flex-direction: column;
       justify-content: center;
       align-items: center;
+    }
+    #performance {
+      width: 75vw;
+      height: 20px;
+      border-radius: 999em;
+      overflow: hidden;
+      border: 1px #cccccc solid;
+    }
+    #performances {
+      height: 100%;
+      min-width: 20px;
+      background: linear-gradient(135deg, #fce38a, #f38181);
+      display: flex;
+      justify-content: flex-end;
+      border-radius: 999em;
+      box-sizing: border-box;
+      padding: 0 10px;
+      font-size: 12px;
+    }
+    input[type="range"] {
+      width: 25vw;
+    }
+    .down,
+    .mag {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .downloadPic {
+      width: 25vw;
+      height: 50px;
+      border-radius: 999em;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, #fff6b7, #f6416c);
+      color: #2c3a47;
+      font-size: 23px;
+      border: 0;
+      margin: 30px 0;
+    }
+    button {
+      margin: 20px 0;
     }
   </style>
 </html>
