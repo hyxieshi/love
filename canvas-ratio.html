@@ -2,8 +2,8 @@
  * @Author: SunBOY
  * @Date: 2022-11-24 15:18:13
  * @LastEditors: SunBOY
- * @LastEditTime: 2023-05-05 00:01:24
- * @FilePath: d:\xike\Desktop\在线压缩图片.html
+ * @LastEditTime: 2023-05-05 11:52:30
+ * @FilePath: d:\xike\Desktop\canvas-ratio.html
  * @Description: 
  * Copyright 2022 OBKoro1, All Rights Reserved. 
  * 2022-11-24 15:18:13
@@ -33,7 +33,15 @@
           accept="image/gif,image/jpeg,image/jpg,image/png"
           @change="chooseImg"
         />
-        <button @click="jpegImager" :disabled="pct>0" v-show="filelist.length>0">压缩</button>
+        <!-- <label for="file">上传</label> -->
+        <button
+          @click="jpegImager"
+          :disabled="pct>0"
+          v-show="filelist.length>0"
+        >
+          压缩
+        </button>
+        <button @click="empty" v-show="filelist.length>0" :disabled="pct>0">清空</button>
         <p>请输入0-100的压缩比例 数值越小压缩比越高</p>
         <p>经过测试20 是兼顾大小及画质的 低于20 画质下降很大</p>
         <input
@@ -84,7 +92,7 @@
           if (e.target.files === null || e.target.files.lenth === 0) {
             return;
           }
-          this.pct = 0
+          this.pct = 0;
           this.filelist = e.target.files;
         },
         // 压缩图片
@@ -117,7 +125,7 @@
           console.timeEnd("压缩");
         },
         downloadPic(e) {
-          if (this.pct !== 100) {
+          if (this.pct !== 100.0) {
             console.log("未完成");
             return false;
           }
@@ -155,11 +163,14 @@
               console.log("正在下载");
             }
           }
+          this.empty();
+          // console.log(zip);
+        },
+        empty() {
           // 下载后清空 文件
           document.getElementById("input").value = "";
           this.filedow = [];
           this.filelist = [];
-          // console.log(zip);
         },
         compress(item, i, ratio = 0.6) {
           return new Promise((res, rej) => {
@@ -255,7 +266,7 @@
       margin: 30px 0;
     }
     button {
-      margin: 20px 0;
+      margin: 10px 0;
     }
   </style>
 </html>
