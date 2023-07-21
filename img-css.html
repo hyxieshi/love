@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+</head>
+
+<body style="display: flex; flex-wrap: wrap-reverse;">
+    <div class="img">
+        <!-- <canvas></canvas> -->
+    </div>
+    <div style="display: flex;flex-direction: column; width:20vw;">
+        <!-- 
+            filter: blur(5px);
+filter: brightness(0.4);
+filter: contrast(200%);
+filter: drop-shadow(16px 16px 20px blue);
+filter: grayscale(50%);
+filter: hue-rotate(90deg);
+filter: invert(75%);
+filter: opacity(25%);
+filter: saturate(30%);
+filter: sepia(60%)
+         -->
+        <div class="input">高斯模糊<input type="number" id="blur" min="0" max="100" /></div>
+        <div class="input">曝光<input type="range" id="brightness" min="0" max="200" value="100" /></div>
+        <div class="input">对比度<input type="range" id="contrast" min="0" max="200" value="100" /></div>
+        <div class="input">饱和<input type="range" id="saturate" min="0" max="200" value="100" /></div>
+        <div class="input"> 灰度<input type="range" id="grayscale" min="0" max="100" /></div>
+        <div class="input">色向<input type="number" id="hue-rotate" min="0" max="360" /></div>
+        <div class="input">反转<input type="range" name="" id="invert" min="0" max="100" /></div>
+        <div class="input">透明度<input type="range" id="opacity" min="0" max="100" /></div>
+        <div class="input"> 褪色<input type="range" id="sepia" min="0" max="100" /></div>
+    </div>
+    <button>选择图片</button>
+    <input type="file" id="file" style="display: none" />
+</body>
+<script>
+    const div = document.querySelector(".img");
+    const canvas = document.querySelector("canvas");
+    const button = document.querySelector("button");
+    const file = document.querySelector("#file");
+
+    const blur = document.querySelector(".blur");
+    const brightness = document.querySelector(".brightness");
+    const contrast = document.querySelector(".contrast");
+    const saturate = document.querySelector(".saturate");
+    const grayscale = document.querySelector(".grayscale");
+    const hueRotate = document.querySelector(".hue-rotate");
+    const invert = document.querySelector(".invert");
+    const opacity = document.querySelector(".opacity");
+    const sepia = document.querySelector(".sepia");
+
+    const inputs = document.querySelectorAll(".input"); //get all inputs in the page.
+
+    const filter = new Map()
+
+    inputs.forEach(input => input.addEventListener("input", changeImg)); //assign the event listener to all inputs.
+
+
+
+    button.addEventListener("click", () => {
+        changeFile();
+    });
+
+    /**
+     *  选择文件
+     */
+    const changeFile = function () {
+        file.click();
+        file.addEventListener("change", (e) => {
+            let file = e.target.files;
+            let reader = new FileReader();
+            reader.addEventListener("load", (e) => {
+                let img = new Image();
+                img.src = e.target.result;
+                div.style.width = "80vw";
+                img.style.width = div.style.width;
+                img.id = 'img'
+                div.appendChild(img);
+            });
+            reader.readAsDataURL(file[0]);
+        });
+    };
+
+    function changeImg(e) {
+        filter.set(e.target.id, e.target.value)
+        filterobj = Object.fromEntries(filter.entries())
+        let filterstr = ''
+        for (const index in filterobj) {
+            let unit = ''
+            if (index === 'blur') unit = 'px'
+            else if (index === 'hue-rotate') unit = 'deg'
+            else unit = '%'
+            filterstr += ` ${index}(${filterobj[index]}${unit})`
+        }
+        console.log(filterstr)
+        document.querySelector('#img').setAttribute('style', `filter:${filterstr}`)
+        // document.querySelector('#img').style.filter = filterstr; //apply filter to img element.
+    }
+</script>
+<style>
+    .input {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+
+    }
+
+    img {
+        filter: ;
+    }
+</style>
+
+</html>
