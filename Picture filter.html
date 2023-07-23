@@ -4,114 +4,168 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>图片处理工具</title>
+    <style>
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .input {
+            flex-basis: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input label {
+            width: 80px;
+            text-align: right;
+        }
+
+        .input input[type="range"] {
+            width: 150px;
+        }
+
+        #img {
+            max-width: 100%;
+        }
+    </style>
 </head>
 
-<body style="display: flex; flex-wrap: wrap-reverse;">
-    <div class="img">
-        <!-- <canvas></canvas> -->
+<body>
+    <div class="container">
+        <div>
+            <input type="file" id="file" accept="image/*" />
+            <br />
+            <img id="img" />
+        </div>
+        <div class="input">
+            <label for="blur">高斯模糊</label>
+            <input type="range" id="blur" min="0" max="10" value="0" />
+        </div>
+        <div class="input">
+            <label for="brightness">曝光</label>
+            <input type="range" id="brightness" min="0" max="200" value="100" />
+        </div>
+        <div class="input">
+            <label for="contrast">对比度</label>
+            <input type="range" id="contrast" min="0" max="200" value="100" />
+        </div>
+        <div class="input">
+            <label for="saturate">饱和度</label>
+            <input type="range" id="saturate" min="0" max="200" value="100" />
+        </div>
+        <div class="input">
+            <label for="grayscale">灰度</label>
+            <input type="range" id="grayscale" min="0" max="100" value="0" />
+        </div>
+        <div class="input">
+            <label for="hue-rotate">色相</label>
+            <input type="range" id="hue-rotate" min="0" max="360" value="0" />
+        </div>
+        <div class="input">
+            <label for="invert">反转</label>
+            <input type="range" id="invert" min="0" max="100" value="0" />
+        </div>
+        <div class="input">
+            <label for="opacity">透明度</label>
+            <input type="range" id="opacity" min="0" max="100" value="100" />
+        </div>
+        <div class="input">
+            <label for="sepia">褪色</label>
+            <input type="range" id="sepia" min="0" max="100" value="0" />
+        </div>
+        <button id="download">下载图片</button>
     </div>
-    <div style="display: flex;flex-direction: column; width:20vw;">
-        <!-- 
-            filter: blur(5px);
-filter: brightness(0.4);
-filter: contrast(200%);
-filter: drop-shadow(16px 16px 20px blue);
-filter: grayscale(50%);
-filter: hue-rotate(90deg);
-filter: invert(75%);
-filter: opacity(25%);
-filter: saturate(30%);
-filter: sepia(60%)
-         -->
-        <div class="input">高斯模糊<input type="number" id="blur" min="0" max="100" /></div>
-        <div class="input">曝光<input type="range" id="brightness" min="0" max="200" value="100" /></div>
-        <div class="input">对比度<input type="range" id="contrast" min="0" max="200" value="100" /></div>
-        <div class="input">饱和<input type="range" id="saturate" min="0" max="200" value="100" /></div>
-        <div class="input"> 灰度<input type="range" id="grayscale" min="0" max="100" /></div>
-        <div class="input">色向<input type="number" id="hue-rotate" min="0" max="360" /></div>
-        <div class="input">反转<input type="range" name="" id="invert" min="0" max="100" /></div>
-        <div class="input">透明度<input type="range" id="opacity" min="0" max="100" /></div>
-        <div class="input"> 褪色<input type="range" id="sepia" min="0" max="100" /></div>
     </div>
-    <button>选择图片</button>
-    <input type="file" id="file" style="display: none" />
-</body>
-<script>
-    const div = document.querySelector(".img");
-    const canvas = document.querySelector("canvas");
-    const button = document.querySelector("button");
-    const file = document.querySelector("#file");
 
-    const blur = document.querySelector(".blur");
-    const brightness = document.querySelector(".brightness");
-    const contrast = document.querySelector(".contrast");
-    const saturate = document.querySelector(".saturate");
-    const grayscale = document.querySelector(".grayscale");
-    const hueRotate = document.querySelector(".hue-rotate");
-    const invert = document.querySelector(".invert");
-    const opacity = document.querySelector(".opacity");
-    const sepia = document.querySelector(".sepia");
+    <script>
+        const fileInput = document.querySelector("#file");
+        const img = document.querySelector("#img");
+        const blurInput = document.querySelector("#blur");
+        const brightnessInput = document.querySelector("#brightness");
+        const contrastInput = document.querySelector("#contrast");
+        const saturateInput = document.querySelector("#saturate");
+        const grayscaleInput = document.querySelector("#grayscale");
+        const hueRotateInput = document.querySelector("#hue-rotate");
+        const invertInput = document.querySelector("#invert");
+        const opacityInput = document.querySelector("#opacity");
+        const sepiaInput = document.querySelector("#sepia");
+        const downloadButton = document.querySelector("#download");
+        let downFileName = ''
 
-    const inputs = document.querySelectorAll(".input"); //get all inputs in the page.
+        // const filterMap = new Map();
 
-    const filter = new Map()
+        function applyFilter() {
+            const filterStr = `blur(${blurInput.value}px) brightness(${brightnessInput.value}%) contrast(${contrastInput.value}%) saturate(${saturateInput.value}%) grayscale(${grayscaleInput.value}%) hue-rotate(${hueRotateInput.value}deg) invert(${invertInput.value}%) opacity(${opacityInput.value}%) sepia(${sepiaInput.value}%)`
 
-    inputs.forEach(input => input.addEventListener("input", changeImg)); //assign the event listener to all inputs.
-
-
-
-    button.addEventListener("click", () => {
-        changeFile();
-    });
-
-    /**
-     *  选择文件
-     */
-    const changeFile = function () {
-        file.click();
-        file.addEventListener("change", (e) => {
-            let file = e.target.files;
-            let reader = new FileReader();
-            reader.addEventListener("load", (e) => {
-                let img = new Image();
-                img.src = e.target.result;
-                div.style.width = "80vw";
-                img.style.width = div.style.width;
-                img.id = 'img'
-                div.appendChild(img);
-            });
-            reader.readAsDataURL(file[0]);
-        });
-    };
-
-    function changeImg(e) {
-        filter.set(e.target.id, e.target.value)
-        filterobj = Object.fromEntries(filter.entries())
-        let filterstr = ''
-        for (const index in filterobj) {
-            let unit = ''
-            if (index === 'blur') unit = 'px'
-            else if (index === 'hue-rotate') unit = 'deg'
-            else unit = '%'
-            filterstr += ` ${index}(${filterobj[index]}${unit})`
+            img.style.filter = filterStr;
         }
-        console.log(filterstr)
-        document.querySelector('#img').setAttribute('style', `filter:${filterstr}`)
-        // document.querySelector('#img').style.filter = filterstr; //apply filter to img element.
-    }
-</script>
-<style>
-    .input {
-        width: 100%;
-        display: flex;
-        justify-content: space-around;
+        function resetFilters() {
+            img.style.filter = "";
+            // filterMap.clear();
+            blurInput.value = 0;
+            brightnessInput.value = 100;
+            contrastInput.value = 100;
+            saturateInput.value = 100;
+            grayscaleInput.value = 0;
+            hueRotateInput.value = 0;
+            invertInput.value = 0;
+            opacityInput.value = 100;
+            sepiaInput.value = 0;
+        }
+        function downloadImage() {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
 
-    }
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.filter = img.style.filter;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-    img {
-        filter: ;
-    }
-</style>
+            canvas.toBlob(function (blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = downFileName + '.png'
+                a.click();
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        fileInput.addEventListener("change", function () {
+            if (fileInput.files && fileInput.files[0]) {
+                const reader = new FileReader();
+                downFileName = `Sunboy-${fileInput.files[0].name}`
+                reader.onload = function (e) {
+                    img.src = e.target.result;
+                    resetFilters();
+                };
+
+                reader.readAsDataURL(fileInput.files[0]);
+            }
+        });
+
+        const filterList = [blurInput, brightnessInput, contrastInput, saturateInput, grayscaleInput, hueRotateInput, invertInput, opacityInput, sepiaInput]
+        for (const item of filterList) {
+            item.addEventListener('input', applyFilter)
+        }
+
+        // blurInput.addEventListener("input", applyFilter);
+        // brightnessInput.addEventListener("input", applyFilter);
+        // contrastInput.addEventListener("input", applyFilter);
+        // saturateInput.addEventListener("input", applyFilter);
+        // grayscaleInput.addEventListener("input", applyFilter);
+        // hueRotateInput.addEventListener("input", applyFilter);
+        // invertInput.addEventListener("input", applyFilter);
+        // opacityInput.addEventListener("input", applyFilter);
+        // sepiaInput.addEventListener("input", applyFilter);
+
+        downloadButton.addEventListener("click", downloadImage);
+    </script>
+</body>
 
 </html>
